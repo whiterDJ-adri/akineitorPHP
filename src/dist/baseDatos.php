@@ -1,13 +1,7 @@
 <?php
 require_once '../models/MySQLConnection.php'; // Asegúrate de que el archivo de tu clase esté incluido
 
-/**
- * Ejecuta una consulta SQL de manera segura y devuelve los resultados.
- *
- * @param string $sql     Consulta SQL con placeholders (?) para los parámetros.
- * @param array  $params  Parámetros a insertar en la consulta.
- * @return array|bool     Devuelve un array asociativo con los resultados, o false si falla.
- */
+
 function secureQuery($sql, $params = [])
 {
     try {
@@ -19,7 +13,7 @@ function secureQuery($sql, $params = [])
         }
 
         // Validar que la consulta sea solo SELECT, INSERT, UPDATE o DELETE
-        $permitidos = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
+        $permitidos = ['SELECT', 'INSERT', 'UPDATE'];
         $primerPalabra = strtoupper(strtok(trim($sql), ' '));
 
         if (!in_array($primerPalabra, $permitidos)) {
@@ -45,14 +39,4 @@ function secureQuery($sql, $params = [])
         error_log("Error al ejecutar consulta: " . $e->getMessage());
         return false;
     }
-}
-
-
-$result = secureQuery("SELECT * FROM personajes", []);
-if (is_array($result)) {
-    foreach ($result as $row) {
-        echo implode(" | ", $row) . PHP_EOL;
-    }
-} else {
-    var_dump($result);
 }
