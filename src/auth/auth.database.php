@@ -78,9 +78,90 @@ class AuthDataBase
 
 
 
+
+
+
+    //Select rasgos de personajes
+
+    public function obtenerRasgosPersonajes()
+    {
+        // Crear conexión a la base de datos
+        $conexionBD = new MySQLConnection();
+        $conexionMySQL = $conexionBD->getConnection();
+
+        if (!$conexionMySQL) {
+            throw new Exception("No hay conexión a la base de datos.");
+        }
+
+        // Consulta SQL para obtener los rasgos de personajes
+        $consultaSQL = "SELECT * FROM rasgos";
+
+        // Ejecutamos la consulta
+        $resultadoConsulta = $conexionMySQL->query($consultaSQL);
+
+        $rasgos = [];
+        while ($fila = $resultadoConsulta->fetch_assoc()) {
+            $rasgos[] = $fila;
+        }
+        return $rasgos;
+    }
+
     //Select para filtrar personajes según rasgos
-    
-    
+    public function filtrarPersonajesPorRasgo($rasgoId)
+    {
+        // Crear conexión a la base de datos
+        $conexionBD = new MySQLConnection();
+        $conexionMySQL = $conexionBD->getConnection();
+
+        if (!$conexionMySQL) {
+            throw new Exception("No hay conexión a la base de datos.");
+        }
+
+        // Consulta SQL para filtrar personajes según rasgo
+        $consultaSQL = "SELECT * FROM personajes_rasgo WHERE $rasgoId = ? AND valor = 1";
+
+        // Preparamos la consulta
+        $sentenciaPreparada = $conexionMySQL->prepare($consultaSQL);
+
+        // Asociamos el valor del rasgo (asumiendo que es un entero: "i")
+        $sentenciaPreparada->bind_param("i", $rasgoId);
+
+        if (!$sentenciaPreparada) {
+            throw new Exception("Error al preparar la consulta: " . $conexionMySQL->error);
+        }
+
+
+
+        if (!$sentenciaPreparada->bind_param("i", $rasgoId)) {
+            throw new Exception("Error al enlazar los parámetros: " . $sentenciaPreparada->error);
+        }
+
+
+        // Ejecutamos la consulta
+        $sentenciaPreparada->execute();
+
+        // Obtenemos el resultado de la ejecución
+        $resultadoConsulta = $sentenciaPreparada->get_result();
+        $personajesFiltrados = [];
+        while ($fila = $resultadoConsulta->fetch_assoc()) {
+            $personajesFiltrados[] = $fila;
+
+        }
+        return $personajesFiltrados;
+    }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 ?>
