@@ -26,8 +26,19 @@ class authServicio
             return true;
         }
 
-        //no acabado
+
+        if ($this->conexionBaseDeDatos->verificarUsuario($usuario, $password)) {
+            return true;
+        }
+
+        return false;
     }
+
+
+    //seleccionar Rasgo para preguntar
+
+ 
+
 }
 
 ?>

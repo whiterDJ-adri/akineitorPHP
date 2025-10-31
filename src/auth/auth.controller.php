@@ -16,19 +16,20 @@ class Auth_controller
 
     }
 
-    public function handleRequest($ruta)
+    public function manejarPeticion($ruta)
     {
-        // Aquí se manejarán las diferentes rutas de autenticación
-        if ($ruta === '/auth/login') {
+        $ruta = $_SERVER['REQUEST_URI'];
+        $metodo = $_SERVER['REQUEST_METHOD'];
+
+        if ($ruta === '/auth/login' && $metodo === 'POST') {
             //$this->login();
-        } elseif ($ruta === '/auth/logout') {
-            // $this->logout();
-        } elseif ($ruta === '/auth/register') {
-            //$this->register();
+        } elseif ($ruta === '/auth/register' && $metodo === 'POST') {
+            //$this->registrar();
         } else {
             http_response_code(404);
-            echo json_encode(['error' => 'Ruta de autenticación no encontrada']);
+            echo json_encode(["error" => "Ruta no encontrada"]);
         }
+
     }
 }
 
