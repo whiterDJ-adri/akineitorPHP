@@ -7,9 +7,7 @@ use Core\Response;
 
 class AlgorithmController
 {
-    public function __construct(private AlgorithmService $service)
-    {
-    }
+    public function __construct(private AlgorithmService $service) {}
 
     public function step(Request $req, Response $res): void
     {
@@ -44,12 +42,23 @@ class AlgorithmController
         $askedIds = array_keys($asked);
         $nextQId = $this->service->selectNextQuestion($askedIds, $probs, $mapping, $preguntas);
 
-        $topPid = null; $topProb = 0.0;
-        foreach ($probs as $pid => $p) {
-            if ($p > $topProb) { $topProb = $p; $topPid = $pid; }
-        }
-        $threshold = 0.9;
-        $esFinal = ($nextQId === null) || ($topProb >= $threshold);
+        // Top y segundo para razón de confianza
+        $sortedProbs = $probs;
+        arsort($sortedProbs);
+        $topPid = key($sortedProbs);
+        $topProb = $sortedProbs[$topPid] ?? 0.0;
+        $vals = array_values($sortedProbs);
+        $secondProb = $vals[1] ?? 0.0;
+
+        // Umbral dinámico según número de preguntas ya respondidas
+        $askedCount = count($askedIds);
+        $threshold = 0.85;
+        if ($askedCount >= 8) $threshold = 0.8;
+        if ($askedCount >= 10) $threshold = 0.75;
+        if ($askedCount >= 12) $threshold = 0.7;
+        $ratioThreshold = 1.6;
+        $hasStrongLead = ($secondProb > 0) && (($topProb / $secondProb) >= $ratioThreshold);
+        $esFinal = ($nextQId === null) || ($topProb >= $threshold) || $hasStrongLead;
 
         if ($esFinal) {
             $this->service->completePartida($partidaId);
@@ -68,7 +77,7 @@ class AlgorithmController
             ];
         }
         // ordenar desc
-        usort($personajesPosibles, fn($a,$b) => $b['probabilidad'] <=> $a['probabilidad']);
+        usort($personajesPosibles, fn($a, $b) => $b['probabilidad'] <=> $a['probabilidad']);
 
         $preguntaActual = null;
         if (!$esFinal && $nextQId !== null && isset($preguntas[$nextQId])) {
@@ -85,6 +94,7 @@ class AlgorithmController
             'pregunta_actual' => $preguntaActual,
             'personajes_posibles' => $personajesPosibles,
             'probabilidad' => round($topProb, 4),
+            'preguntas_respondidas' => $askedCount,
             'es_final' => $esFinal,
             'partida_id' => $partidaId,
         ];
