@@ -40,3 +40,11 @@ function secureQuery($sql, $params = [])
         return false;
     }
 }
+
+
+$result = secureQuery("SELECT * FROM personajes");
+if (is_array($result)) {
+    echo json_encode($result);
+} else {
+    var_dump($result);
+}
